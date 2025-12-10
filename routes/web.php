@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use Laravel\Fortify\Features;
+use App\Http\Controllers\PaymentController;
 
 Route::get('/', function () {
     return Inertia::render('Welcome', [
@@ -14,4 +15,11 @@ Route::get('dashboard', function () {
     return Inertia::render('Dashboard');
 })->middleware(['auth', 'verified'])->name('dashboard');
 
-require __DIR__.'/settings.php';
+Route::post('/pay', [PaymentController::class, 'pay'])->middleware('auth.custom');
+
+Route::post('/deposit', [PaymentController::class, 'deposit'])->middleware('auth.custom');
+
+Route::post('/withdraw', [PaymentController::class, 'withdraw'])->middleware('auth.custom');
+
+
+require __DIR__ . '/settings.php';

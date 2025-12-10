@@ -26,18 +26,33 @@ import { Form, Head } from '@inertiajs/vue3';
         >
             <div class="grid gap-6">
                 <div class="grid gap-2">
-                    <Label for="name">Name</Label>
+                    <Label for="firstname">Firstname</Label>
                     <Input
-                        id="name"
+                        id="firstname"
                         type="text"
                         required
                         autofocus
                         :tabindex="1"
-                        autocomplete="name"
-                        name="name"
-                        placeholder="Full name"
+                        autocomplete="firstname"
+                        name="firstname"
+                        placeholder="Firstname"
                     />
-                    <InputError :message="errors.name" />
+                    <InputError :message="errors.firstname" />
+                </div>
+
+                <div class="grid gap-2">
+                    <Label for="lastname">Lastname</Label>
+                    <Input
+                        id="lastname"
+                        type="text"
+                        required
+                        autofocus
+                        :tabindex="2"
+                        autocomplete="lastname"
+                        name="lastname"
+                        placeholder="Lastname"
+                    />
+                    <InputError :message="errors.lastname" />
                 </div>
 
                 <div class="grid gap-2">
@@ -46,7 +61,7 @@ import { Form, Head } from '@inertiajs/vue3';
                         id="email"
                         type="email"
                         required
-                        :tabindex="2"
+                        :tabindex="3"
                         autocomplete="email"
                         name="email"
                         placeholder="email@example.com"
@@ -55,12 +70,57 @@ import { Form, Head } from '@inertiajs/vue3';
                 </div>
 
                 <div class="grid gap-2">
+                    <Label for="number">Number</Label>
+                    <Input
+                        id="number"
+                        type="text"
+                        required
+                        autofocus
+                        :tabindex="4"
+                        autocomplete="number"
+                        name="number"
+                        placeholder="Phone Number"
+                    />
+                    <InputError :message="errors.number" />
+                </div>
+
+                <div class="grid gap-2">
+                    <Label for="bvn">BVN</Label>
+                    <Input
+                        id="bvn"
+                        type="text"
+                        required
+                        autofocus
+                        :tabindex="5"
+                        autocomplete="bvn"
+                        name="bvn"
+                        placeholder="BVN"
+                    />
+                    <InputError :message="errors.bvn" />
+                </div>
+
+                <div class="grid gap-2">
+                    <Label for="nin">NIN</Label>
+                    <Input
+                        id="nin"
+                        type="text"
+                        required
+                        autofocus
+                        :tabindex="6"
+                        autocomplete="nin"
+                        name="nin"
+                        placeholder="NIN"
+                    />
+                    <InputError :message="errors.nin" />
+                </div>
+
+                <div class="grid gap-2">
                     <Label for="password">Password</Label>
                     <Input
                         id="password"
                         type="password"
                         required
-                        :tabindex="3"
+                        :tabindex="7"
                         autocomplete="new-password"
                         name="password"
                         placeholder="Password"
@@ -68,13 +128,14 @@ import { Form, Head } from '@inertiajs/vue3';
                     <InputError :message="errors.password" />
                 </div>
 
+
                 <div class="grid gap-2">
                     <Label for="password_confirmation">Confirm password</Label>
                     <Input
                         id="password_confirmation"
                         type="password"
                         required
-                        :tabindex="4"
+                        :tabindex="7"
                         autocomplete="new-password"
                         name="password_confirmation"
                         placeholder="Confirm password"

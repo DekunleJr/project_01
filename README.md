@@ -1,0 +1,1 @@
+This is a thrive project on Laravel Framework 12
