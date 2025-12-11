@@ -24,6 +24,7 @@ class User extends Authenticatable
         'lastname',
         'number',
         'balance',
+        'type',
         'nin',
         'bvn',
         'email',

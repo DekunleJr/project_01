@@ -9,6 +9,8 @@ interface adminInterface
 
     public function getUserById($id);
 
+    public function updateUserRole($id);
+
     public function deleteUser($id);
 
     public function getPayments();

@@ -5,62 +5,53 @@ namespace App\Http\Controllers;
 use App\Models\contributionGroup;
 use App\Http\Requests\StorecontributionGroupRequest;
 use App\Http\Requests\UpdatecontributionGroupRequest;
+use Illuminate\Http\Request;
 
 class ContributionGroupController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
+    public $contributionGroupRepository;
+    public function __construct(\App\Interfaces\contributionGroupInterface $contributionGroupRepository)
     {
-        //
+        $this->contributionGroupRepository = $contributionGroupRepository;
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
+    public function getAllContributionGroups(Request $request)
     {
-        //
+        return $this->contributionGroupRepository->getAllContributionGroups($request);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(StorecontributionGroupRequest $request)
+    public function getContributionGroupById(Request $request, $id)
     {
-        //
+        return $this->contributionGroupRepository->getContributionGroupById($request, $id);
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(contributionGroup $contributionGroup)
+    public function createContributionGroup(Request $request)
     {
-        //
+        return $this->contributionGroupRepository->createContributionGroup($request);
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(contributionGroup $contributionGroup)
+    public function updateContributionGroup(Request $request, $id)
     {
-        //
+        return $this->contributionGroupRepository->updateContributionGroup($request, $id);
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(UpdatecontributionGroupRequest $request, contributionGroup $contributionGroup)
+    public function assignMembersToGroup(Request $request, $groupId)
     {
-        //
+        return $this->contributionGroupRepository->assignMembersToGroup($request, $groupId);
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(contributionGroup $contributionGroup)
+    public function removeMembersFromGroup(Request $request, $groupId)
     {
-        //
+        return $this->contributionGroupRepository->removeMembersFromGroup($request, $groupId);
     }
+
+    public function payOut(Request $request, $groupId)
+    {
+        return $this->contributionGroupRepository->payOut($request, $groupId);
+    }
+    public function deleteContributionGroup(Request $request, $id)
+    {
+        return $this->contributionGroupRepository->deleteContributionGroup($request, $id);
+    }
+
 }

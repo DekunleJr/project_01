@@ -7,6 +7,7 @@ use App\Models\UserAction;
 use App\Models\Payment;
 use App\Models\User;
 use App\Models\contributionGroup;
+use App\Models\contribution_payment;
 
 
 class paymentRepository implements paymentInterface
@@ -38,7 +39,10 @@ class paymentRepository implements paymentInterface
         $user->balance = $user->balance + $request->amount;
         $user->save();
 
-        return $payment;
+        return response()->json([
+            'message' => 'Deposit successful',
+            'payment' => $payment
+        ]);
     }
 
     public function pay(Request $request, $contribution_group_id)
@@ -57,6 +61,15 @@ class paymentRepository implements paymentInterface
             return response()->json(['message' => 'Insufficient balance'], 400);
         }
 
+        $memberIds = contributionGroup::find($contribution_group_id)->members->pluck('id')->toArray();
+        if (!in_array($user->id, $memberIds)) {
+            UserAction::create([
+                'user_action' => "unauthorized contribution attempt of amount: " . $request->amount,
+                'user_id' => $user->id,
+            ]);
+            return response()->json(['message' => 'You are not a member of this Contribution Group'], 403);
+        }
+
 
         $payment = Payment::create([
             'user_id' => $user->id,
@@ -65,7 +78,25 @@ class paymentRepository implements paymentInterface
             'amount' => $request->amount,
         ]);
 
-        $contribute = contributionGroup::find($request->contribution_group_id);
+        $contribute = contributionGroup::find($contribution_group_id);
+
+        $paidContribution = contribution_payment::where('contribution_group_id', $contribution_group_id)
+            ->where('user_id', $user->id)
+            ->where('had_paid', false)
+            ->first();
+
+        if (!$paidContribution) {
+            UserAction::create([
+                'user_action' => "made contribution but failed because schedule not set or payment compelted: " . $request->amount,
+                'user_id' => $user->id,
+            ]);
+            return response()->json(['message' => 'Contribution payment not scheduled or payment completed'], 404);
+        }
+
+        if ($paidContribution) {
+            $paidContribution->had_paid = true;
+            $paidContribution->save();
+        }
 
         if (!$contribute) {
             UserAction::create([
@@ -74,6 +105,15 @@ class paymentRepository implements paymentInterface
             ]);
             return response()->json(['message' => 'Contribution Group not found'], 404);
         }
+
+        if ($request->amount != $contribute->individualAmount) {
+            UserAction::create([
+                'user_action' => "made contribution with incorrect amount: " . $request->amount,
+                'user_id' => $user->id,
+            ]);
+            return response()->json(['message' => 'Incorrect contribution amount'], 400);
+        }
+
 
         $contribute->amount += $request->amount;
         $contribute->save();
@@ -130,16 +170,38 @@ class paymentRepository implements paymentInterface
         $user->balance = $user->balance - $request->amount;
         $user->save();
 
-        return $payment;
+        return response()->json([
+            'message' => 'withdrawal successful',
+            'payment' => $payment
+        ]);
     }
 
     public function getPaymentHistory(Request $request)
     {
-        return payment::where('user_id', $request->user()->id)->orderBy('created_at', 'desc')->get();
+        $user = $request->user();
+        UserAction::create([
+            'user_action' => "checked payment history",
+            'user_id' => $user->id,
+        ]);
+
+        $payment = Payment::where('user_id', $request->user()->id)->orderBy('created_at', 'desc')->get();
+        return response()->json([
+            'message' => 'Payment history fetched successfully',
+            'payment' => $payment
+        ]);
     }
 
     public function checkBalance(Request $request)
     {
-        return User::find($request->user()->id)->balance;
+        $user = $request->user();
+        UserAction::create([
+            'user_action' => "checked balance",
+            'user_id' => $user->id,
+        ]);
+        $balance = User::find($request->user()->id)->balance;
+        return response()->json([
+            'message' => 'Balance checked successfully',
+            'balance' => $balance
+        ]);
     }
 }

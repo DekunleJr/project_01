@@ -5,9 +5,10 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class contributionGroup extends Model
+
+
+class ContributionGroup extends Model
 {
-    /** @use HasFactory<\Database\Factories\ContributionGroupFactory> */
     use HasFactory;
 
     protected $fillable = [
@@ -15,17 +16,26 @@ class contributionGroup extends Model
         'users',
         'start_date',
         'end_date',
+        'frequency',
+        'individualAmount',
+        'amount',
     ];
 
-    // Cast JSON users field to array automatically
     protected $casts = [
         'users' => 'array',
         'start_date' => 'date',
         'end_date' => 'date',
     ];
 
-    public function members()
+    // Accessor - now "members" is an attribute, not a method
+    public function getMembersAttribute()
     {
-        return $this->belongsToMany(User::class, 'users', 'id');
+        $ids = $this->users;
+
+        if (!is_array($ids)) {
+            return collect();
+        }
+
+        return User::whereIn('id', $ids)->get();
     }
 }

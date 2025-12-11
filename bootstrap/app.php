@@ -19,6 +19,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->alias([
             'auth.custom' => \App\Http\Middleware\EnsureUserIsAuthenticated::class,
+            'admin' => \App\Http\Middleware\AdminMiddleware::class,
         ]);
 
         $middleware->web(append: [

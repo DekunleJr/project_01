@@ -16,6 +16,11 @@ class AppServiceProvider extends ServiceProvider
             \App\Interfaces\paymentInterface::class,
             \App\Repository\paymentRepository::class
         );
+
+        $this->app->bind(
+            \App\Interfaces\contributionGroupInterface::class,
+            \App\Repository\contributionGroupRepository::class
+        );
     }
 
     /**
