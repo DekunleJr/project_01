@@ -15,6 +15,7 @@ class payment extends Model
         'type',
         'status',
         'amount',
+        'interval',
     ];
 
     public function user()

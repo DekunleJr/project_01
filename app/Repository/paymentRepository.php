@@ -80,24 +80,6 @@ class paymentRepository implements paymentInterface
 
         $contribute = contributionGroup::find($contribution_group_id);
 
-        $paidContribution = contribution_payment::where('contribution_group_id', $contribution_group_id)
-            ->where('user_id', $user->id)
-            ->where('had_paid', false)
-            ->first();
-
-        if (!$paidContribution) {
-            UserAction::create([
-                'user_action' => "made contribution but failed because schedule not set or payment compelted: " . $request->amount,
-                'user_id' => $user->id,
-            ]);
-            return response()->json(['message' => 'Contribution payment not scheduled or payment completed'], 404);
-        }
-
-        if ($paidContribution) {
-            $paidContribution->had_paid = true;
-            $paidContribution->save();
-        }
-
         if (!$contribute) {
             UserAction::create([
                 'user_action' => "made contribution to a deleted Contribution Group of amount: " . $request->amount,
@@ -113,6 +95,24 @@ class paymentRepository implements paymentInterface
             ]);
             return response()->json(['message' => 'Incorrect contribution amount'], 400);
         }
+
+        $paidContribution = contribution_payment::where('contribution_group_id', $contribution_group_id)
+            ->where('user_id', $user->id)
+            ->where('had_paid', false)
+            ->first();
+
+        if (!$paidContribution) {
+            UserAction::create([
+                'user_action' => "made contribution but failed because schedule not set or payment compelted: " . $request->amount,
+                'user_id' => $user->id,
+            ]);
+            return response()->json(['message' => 'Contribution payment not scheduled or payment completed'], 404);
+        }
+
+        $paidContribution->had_paid = true;
+        $paidContribution->save();
+
+
 
 
         $contribute->amount += $request->amount;

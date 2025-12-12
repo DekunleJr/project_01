@@ -4,9 +4,9 @@ namespace App\Repository;
 use App\Interfaces\contributionGroupInterface;
 use Illuminate\Http\Request;
 use App\Models\UserAction;
-use App\Models\Payment;
+use App\Models\Contribution_payment;
 use App\Models\User;
-use App\Models\contributionGroup;
+use App\Models\ContributionGroup;
 
 
 class contributionGroupRepository implements contributionGroupInterface
@@ -19,7 +19,7 @@ class contributionGroupRepository implements contributionGroupInterface
             'user_action' => "fetched all contribution groups",
             'user_id' => $user->id,
         ]);
-        $group = contributionGroup::all();
+        $group = ContributionGroup::all();
 
         return response()->json([
             'message' => 'Contribution Groups fetched successfully',
@@ -35,7 +35,7 @@ class contributionGroupRepository implements contributionGroupInterface
             'user_id' => $user->id,
         ]);
 
-        $group = contributionGroup::find($id);
+        $group = ContributionGroup::find($id);
         return response()->json([
             'message' => 'Contribution Group fetched successfully',
             'contribution_group' => $group,
@@ -54,7 +54,7 @@ class contributionGroupRepository implements contributionGroupInterface
 
         $user = $request->user();
 
-        $contributionGroup = contributionGroup::create([
+        $contributionGroup = ContributionGroup::create([
             'title' => $request->title,
             'individualAmount' => $request->individualAmount,
             'start_date' => $request->start_date,
@@ -90,7 +90,7 @@ class contributionGroupRepository implements contributionGroupInterface
             'frequency' => 'required|string|in:weekly,monthly,yearly',
         ]);
 
-        $group = contributionGroup::find($id);
+        $group = ContributionGroup::find($id);
         $group->update($request->all());
 
         return response()->json([
@@ -99,34 +99,6 @@ class contributionGroupRepository implements contributionGroupInterface
         ]);
     }
 
-    // public function assignMembersToGroup(Request $request, $groupId)
-    // {
-    //     $request->validate([
-    //         'user_ids' => 'required|array',
-    //         'user_ids.*' => 'exists:users,id',
-    //     ]);
-
-    //     $group = contributionGroup::find($groupId);
-    //     $userIds = $request->input('user_ids', []);
-    //     if (!$group) {
-    //         return response()->json(['message' => 'Contribution Group not found'], 404);
-    //     }
-
-    //     $group->users = $userIds;
-    //     $group->save();
-
-    //     $user = $request->user();
-    //     UserAction::create([
-    //         'user_action' => "fetched all contribution groups",
-    //         'user_id' => $user->id,
-    //     ]);
-    //     return response()->json([
-    //         'message' => 'Members assigned successfully',
-    //         'contribution_group' => $group,
-    //         'users' => $userIds,
-    //     ]);
-    // }
-
     public function assignMembersToGroup(Request $request, $groupId)
     {
         $request->validate([
@@ -134,7 +106,7 @@ class contributionGroupRepository implements contributionGroupInterface
             'user_ids.*' => 'exists:users,id',
         ]);
 
-        $group = contributionGroup::find($groupId);
+        $group = ContributionGroup::find($groupId);
 
         if (!$group) {
             return response()->json(['message' => 'Contribution Group not found'], 404);
@@ -151,6 +123,29 @@ class contributionGroupRepository implements contributionGroupInterface
         $group->users = $mergedUsers;
         $group->save();
 
+        $userIds = $request->input('user_ids', []);
+        $individualAmount = $group->individualAmount;
+
+        $contributionPayments = [];
+
+        foreach ($userIds as $id) {
+            $payCreated = Contribution_payment::where('contribution_group_id', $groupId)
+                ->where('user_id', $id)
+                ->first();
+            if ($payCreated) {
+                continue;
+            }
+            $contributionPayment = Contribution_payment::create([
+                'contribution_group_id' => $groupId,
+                'user_id' => $id,
+                'amount' => $individualAmount,
+                'had_paid' => false,
+                'due_date' => null,
+            ]);
+
+            $contributionPayments[] = $contributionPayment;
+        }
+
         // Log action
         $user = $request->user();
         UserAction::create([
@@ -162,6 +157,7 @@ class contributionGroupRepository implements contributionGroupInterface
             'message' => 'Members added successfully',
             'contribution_group' => $group,
             'users' => $mergedUsers,
+            'payment_records' => $contributionPayments,
         ]);
     }
 
@@ -172,7 +168,7 @@ class contributionGroupRepository implements contributionGroupInterface
             'user_ids.*' => 'exists:users,id',
         ]);
 
-        $group = contributionGroup::find($groupId);
+        $group = ContributionGroup::find($groupId);
         $userIds = $request->input('user_ids', []);
         if (!$group) {
             return response()->json(['message' => 'Contribution Group not found'], 404);
@@ -205,7 +201,7 @@ class contributionGroupRepository implements contributionGroupInterface
             'user_id' => 'required|exists:users,id',
         ]);
 
-        $group = contributionGroup::find($groupId);
+        $group = ContributionGroup::find($groupId);
         if (!$group) {
             return response()->json(['message' => 'Contribution Group not found'], 404);
         }
@@ -248,7 +244,7 @@ class contributionGroupRepository implements contributionGroupInterface
             'user_id' => $user->id,
         ]);
 
-        $group = contributionGroup::find($id);
+        $group = ContributionGroup::find($id);
         if (!$group) {
             return response()->json(['message' => 'Contribution Group not found'], 404);
         }
