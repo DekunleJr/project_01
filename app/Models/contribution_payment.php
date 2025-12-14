@@ -13,5 +13,6 @@ class contribution_payment extends Model
         'amount',
         'had_paid',
         'due_date',
+        'cycle',
     ];
 }

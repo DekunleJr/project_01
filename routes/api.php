@@ -31,6 +31,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/withdraw', [PaymentController::class, 'withdraw']);
     Route::get('/payment-history', [PaymentController::class, 'getPaymentHistory']);
     Route::get('/check-balance', [PaymentController::class, 'checkBalance']);
+    Route::get('/contribution-history/{contribution_group_id}', [PaymentController::class, 'checkContributionHistory']);
 
     Route::middleware('admin')->group(function () {
         Route::post('/groups', [ContributionGroupController::class, 'createContributionGroup']);

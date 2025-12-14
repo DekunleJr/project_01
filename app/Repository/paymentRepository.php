@@ -106,7 +106,7 @@ class paymentRepository implements paymentInterface
                 'user_action' => "made contribution but failed because schedule not set or payment compelted: " . $request->amount,
                 'user_id' => $user->id,
             ]);
-            return response()->json(['message' => 'Contribution payment not scheduled or payment completed'], 404);
+            return response()->json(['message' => 'Contribution payment not scheduled or payment completed'], 401);
         }
 
         $paidContribution->had_paid = true;
@@ -202,6 +202,25 @@ class paymentRepository implements paymentInterface
         return response()->json([
             'message' => 'Balance checked successfully',
             'balance' => $balance
+        ]);
+    }
+
+    public function checkContributionHistory(Request $request, $contribution_group_id)
+    {
+        $user = $request->user();
+        UserAction::create([
+            'user_action' => "checked contribution history for group id: " . $contribution_group_id,
+            'user_id' => $user->id,
+        ]);
+
+        $contributionPayments = contribution_payment::where('contribution_group_id', $contribution_group_id)
+            ->where('user_id', $user->id)
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        return response()->json([
+            'message' => 'Contribution history fetched successfully',
+            'contribution_payments' => $contributionPayments
         ]);
     }
 }

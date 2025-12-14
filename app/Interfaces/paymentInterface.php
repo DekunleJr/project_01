@@ -16,4 +16,6 @@ interface paymentInterface
     public function getPaymentHistory(Request $request);
 
     public function checkBalance(Request $request);
+
+    public function checkContributionHistory(Request $request, $contribution_group_id);
 }

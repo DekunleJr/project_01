@@ -19,6 +19,7 @@ class ContributionGroup extends Model
         'frequency',
         'individualAmount',
         'amount',
+        'no_of_members',
     ];
 
     protected $casts = [

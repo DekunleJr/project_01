@@ -7,6 +7,7 @@ use App\Models\UserAction;
 use App\Models\Contribution_payment;
 use App\Models\User;
 use App\Models\ContributionGroup;
+use Carbon\Carbon;
 
 
 class contributionGroupRepository implements contributionGroupInterface
@@ -36,9 +37,11 @@ class contributionGroupRepository implements contributionGroupInterface
         ]);
 
         $group = ContributionGroup::find($id);
+        $members = User::whereIn('id', $group->users)->get();
         return response()->json([
             'message' => 'Contribution Group fetched successfully',
             'contribution_group' => $group,
+            'members' => $members,
         ]);
     }
 
@@ -50,6 +53,7 @@ class contributionGroupRepository implements contributionGroupInterface
             'start_date' => 'required|date',
             'end_date' => 'required|date|after:start_date',
             'frequency' => 'required|string|in:weekly,monthly,yearly',
+            'no_of_members' => 'required|integer|min:1',
         ]);
 
         $user = $request->user();
@@ -60,6 +64,7 @@ class contributionGroupRepository implements contributionGroupInterface
             'start_date' => $request->start_date,
             'end_date' => $request->end_date,
             'frequency' => $request->frequency,
+            'no_of_members' => $request->no_of_members,
             'users' => [],
             'amount' => 0,
         ]);
@@ -88,6 +93,7 @@ class contributionGroupRepository implements contributionGroupInterface
             'start_date' => 'required|date',
             'end_date' => 'required|date|after:start_date',
             'frequency' => 'required|string|in:weekly,monthly,yearly',
+            'no_of_members' => 'required|integer|min:1',
         ]);
 
         $group = ContributionGroup::find($id);
@@ -127,21 +133,36 @@ class contributionGroupRepository implements contributionGroupInterface
         $individualAmount = $group->individualAmount;
 
         $contributionPayments = [];
+        $count = $group->no_of_members;
+        $startDate = Carbon::parse($group->start_date);
+        $frequency = $group->frequency;
 
         foreach ($userIds as $id) {
-            $payCreated = Contribution_payment::where('contribution_group_id', $groupId)
-                ->where('user_id', $id)
-                ->first();
-            if ($payCreated) {
-                continue;
+            for ($i = 1; $i <= $count; $i++) {
+                $payCreated = Contribution_payment::where('contribution_group_id', $groupId)
+                    ->where('user_id', $id)
+                    ->where('cycle', $i)
+                    ->first();
+                if ($payCreated) {
+                    continue;
+                }
+
+                $dueDate = match ($frequency) {
+                    'daily' => $startDate->copy()->addDays($i),
+                    'weekly' => $startDate->copy()->addWeeks($i),
+                    'monthly' => $startDate->copy()->addMonths($i),
+                    default => $startDate->copy()->addWeeks($i),
+                };
+
+                $contributionPayment = Contribution_payment::create([
+                    'contribution_group_id' => $groupId,
+                    'user_id' => $id,
+                    'amount' => $individualAmount,
+                    'had_paid' => false,
+                    'cycle' => $i,
+                    'due_date' => $dueDate,
+                ]);
             }
-            $contributionPayment = Contribution_payment::create([
-                'contribution_group_id' => $groupId,
-                'user_id' => $id,
-                'amount' => $individualAmount,
-                'had_paid' => false,
-                'due_date' => null,
-            ]);
 
             $contributionPayments[] = $contributionPayment;
         }

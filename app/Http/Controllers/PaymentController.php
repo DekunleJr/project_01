@@ -45,4 +45,9 @@ class PaymentController extends Controller
         return $this->paymentRepository->checkBalance($request);
     }
 
+    public function checkContributionHistory(Request $request, $contribution_group_id)
+    {
+        return $this->paymentRepository->checkContributionHistory($request, $contribution_group_id);
+    }
+
 }
