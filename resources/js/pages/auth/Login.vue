@@ -8,15 +8,50 @@ import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
 import AuthBase from '@/layouts/AuthLayout.vue';
 import { register } from '@/routes';
-import { store } from '@/routes/login';
 import { request } from '@/routes/password';
-import { Form, Head } from '@inertiajs/vue3';
+import { Head } from '@inertiajs/vue3';
+import { ref } from 'vue';
+import api from '@/lib/api';
+import { router } from '@inertiajs/vue3';
 
 defineProps<{
     status?: string;
     canResetPassword: boolean;
     canRegister: boolean;
 }>();
+
+const email = ref('');
+const password = ref('');
+const remember = ref(false);
+const errors = ref({});
+const processing = ref(false);
+
+const handleLogin = async () => {
+    console.log('handleLogin called');
+    processing.value = true;
+    errors.value = {};
+    try {
+        console.log('Making API call');
+        const response = await api.post('/login', {
+            email: email.value,
+            password: password.value,
+        });
+        console.log('Response:', response);
+        localStorage.setItem('api_token', response.data.token);
+        console.log('Token stored, redirecting');
+        // Redirect to dashboard
+        router.visit('/dashboard');
+    } catch (error: any) {
+        console.error('Error:', error);
+        if (error.response && error.response.data.errors) {
+            errors.value = error.response.data.errors;
+        } else {
+            errors.value = { general: 'Login failed' };
+        }
+    } finally {
+        processing.value = false;
+    }
+};
 </script>
 
 <template>
@@ -33,10 +68,15 @@ defineProps<{
             {{ status }}
         </div>
 
-        <Form
-            v-bind="store.form()"
-            :reset-on-success="['password']"
-            v-slot="{ errors, processing }"
+        <div
+            v-if="errors.general"
+            class="mb-4 text-center text-sm font-medium text-red-600"
+        >
+            {{ errors.general }}
+        </div>
+
+        <form
+            @submit.prevent="handleLogin"
             class="flex flex-col gap-6"
         >
             <div class="grid gap-6">
@@ -45,7 +85,7 @@ defineProps<{
                     <Input
                         id="email"
                         type="email"
-                        name="email"
+                        v-model="email"
                         required
                         autofocus
                         :tabindex="1"
@@ -70,7 +110,7 @@ defineProps<{
                     <Input
                         id="password"
                         type="password"
-                        name="password"
+                        v-model="password"
                         required
                         :tabindex="2"
                         autocomplete="current-password"
@@ -81,7 +121,7 @@ defineProps<{
 
                 <div class="flex items-center justify-between">
                     <Label for="remember" class="flex items-center space-x-3">
-                        <Checkbox id="remember" name="remember" :tabindex="3" />
+                        <Checkbox id="remember" v-model:checked="remember" :tabindex="3" />
                         <span>Remember me</span>
                     </Label>
                 </div>
@@ -105,6 +145,6 @@ defineProps<{
                 Don't have an account?
                 <TextLink :href="register()" :tabindex="5">Sign up</TextLink>
             </div>
-        </Form>
+        </form>
     </AuthBase>
 </template>

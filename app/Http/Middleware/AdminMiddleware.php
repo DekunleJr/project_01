@@ -15,10 +15,16 @@ class AdminMiddleware
      */
     public function handle(Request $request, Closure $next)
     {
-        if (!$request->user() || $request->user()->type !== 'admin') {
-            return response()->json([
-                'error' => 'Unauthorized — Admins only.'
-            ], 403);
+        $user = $request->user();
+        \Log::info('AdminMiddleware check', ['user_id' => $user ? $user->id : null, 'type' => $user ? $user->type : null]);
+        if (!$user || $user->type !== 'admin') {
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'error' => 'Unauthorized — Admins only.'
+                ], 403);
+            } else {
+                return redirect('/dashboard')->with('error', 'Access denied. Admin privileges required.');
+            }
         }
 
         return $next($request);

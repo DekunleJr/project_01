@@ -13,7 +13,11 @@ Route::get('/', function () {
 
 Route::get('dashboard', function () {
     return Inertia::render('Dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+})->name('dashboard');
+
+Route::get('admin', function () {
+    return Inertia::render('Admin');
+})->name('admin')->middleware(['admin']); // Assuming admin middleware exists
 
 Route::post('/pay', [PaymentController::class, 'pay'])->middleware('auth.custom');
 

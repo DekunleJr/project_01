@@ -26,7 +26,7 @@ Route::post('/login', function (Request $request) {
     }
 
     return response()->json(['error' => 'Unauthorized'], 401);
-});
+})->middleware('web');
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/pay/{contribution_group_id}', [PaymentController::class, 'pay']);
