@@ -162,9 +162,9 @@ class contributionGroupRepository implements contributionGroupInterface
                     'cycle' => $i,
                     'due_date' => $dueDate,
                 ]);
+                $contributionPayments[] = $contributionPayment;
             }
 
-            $contributionPayments[] = $contributionPayment;
         }
 
         // Log action
@@ -203,6 +203,10 @@ class contributionGroupRepository implements contributionGroupInterface
 
         $group->users = array_diff($group->users, $userIds);
         $group->save();
+
+        Contribution_payment::where('contribution_group_id', $groupId)
+            ->whereIn('user_id', $userIds)
+            ->delete();
 
         $user = $request->user();
         UserAction::create([
